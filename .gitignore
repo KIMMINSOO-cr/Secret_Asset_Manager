@@ -23,3 +23,5 @@
 hs_err_pid*
 replay_pid*
 /Secret_Asset_Manager/nbproject/private/
+/Secret_Asset_Manager/build/
+/Secret_Asset_Manager/dist/
