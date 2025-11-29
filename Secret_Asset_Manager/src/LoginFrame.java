@@ -12,11 +12,50 @@ public class LoginFrame extends javax.swing.JFrame {
     
     DB_MAN DBM = new DB_MAN();
     
-
+    private int failCount = 0;          // 실패 횟수
+    private final int MAX_RETRY = 5;    // 기준 횟수
+    private String currentCaptchaCode = ""; // 정답 저장용
+    
     public LoginFrame() {
         initComponents();
         this.setTitle("시크릿 자산 관리부 - 로그인");
-        this.setLocationRelativeTo(null); 
+        this.setLocationRelativeTo(null);
+        
+        pnCaptcha.setVisible(false); // 처음에는 숨기기
+        
+        this.setSize(400, 300); // 폼 크기 조절
+    }
+    
+    private void setCaptcha() {
+        CaptchaGenerator func = new CaptchaGenerator(); 
+        
+        // 2. 이미지 가져오기 (BufferedImage)
+        java.awt.image.BufferedImage img = func.getCaptchaImage();
+        
+        // 3. JLabel에 이미지를 아이콘으로 변환해서 넣기
+        lblCaptchaImg.setIcon(new javax.swing.ImageIcon(img));
+        currentCaptchaCode = func.getCaptchaText();
+        txtCaptchaKey.setText("");
+        System.out.println("캡차 정답: " + currentCaptchaCode);
+    }
+    
+    private void processLoginFailure() {
+        failCount++;
+        JOptionPane.showMessageDialog(this, "아이디 또는 비밀번호가 일치하지 않습니다.\n(누적 실패: " + failCount + "회)", "로그인 실패", JOptionPane.WARNING_MESSAGE);
+
+        // 실패 횟수가 5회 이상?
+        if (failCount >= MAX_RETRY) {
+            // 아직 캡차창이 안 떠있다면 띄워줌
+            if (!pnCaptcha.isVisible()) {
+                JOptionPane.showMessageDialog(this, "로그인 시도가 너무 많습니다.\n보안 문자를 입력해주세요.");
+                pnCaptcha.setVisible(true); // 패널 보이기
+                setCaptcha();               // 캡차 이미지 생성
+                this.setSize(400, 420);     // 폼 크기 조절
+            } else {
+                // 이미 떠있으면 이미지만 새로고침 
+                setCaptcha(); 
+            }
+        }
     }
 
     /**
@@ -36,6 +75,11 @@ public class LoginFrame extends javax.swing.JFrame {
         btnLogin = new javax.swing.JButton();
         btnJoin = new javax.swing.JButton();
         btnFind = new javax.swing.JButton();
+        pnCaptcha = new javax.swing.JPanel();
+        lblCaptchaImg = new javax.swing.JLabel();
+        txtCaptchaKey = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        btnRefresh = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(400, 300));
@@ -69,6 +113,43 @@ public class LoginFrame extends javax.swing.JFrame {
             }
         });
 
+        lblCaptchaImg.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
+        jLabel1.setText("자동 로그인 방지 문자");
+
+        btnRefresh.setText("새로고침");
+        btnRefresh.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRefreshActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pnCaptchaLayout = new javax.swing.GroupLayout(pnCaptcha);
+        pnCaptcha.setLayout(pnCaptchaLayout);
+        pnCaptchaLayout.setHorizontalGroup(
+            pnCaptchaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnCaptchaLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addGap(18, 18, 18)
+                .addComponent(btnRefresh)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(txtCaptchaKey)
+            .addComponent(lblCaptchaImg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        pnCaptchaLayout.setVerticalGroup(
+            pnCaptchaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnCaptchaLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(pnCaptchaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(btnRefresh))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblCaptchaImg, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(txtCaptchaKey, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -88,13 +169,17 @@ public class LoginFrame extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(txtID, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnLogin))))
+                                .addComponent(btnLogin)))))
+                .addContainerGap(45, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(94, 94, 94)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(pnCaptcha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(44, 44, 44)
                         .addComponent(btnFind)
-                        .addGap(6, 6, 6)
-                        .addComponent(btnJoin, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(49, 49, 49))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnJoin, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -116,10 +201,12 @@ public class LoginFrame extends javax.swing.JFrame {
                         .addComponent(jLabel3))
                     .addComponent(txtPW, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(pnCaptcha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnFind)
                     .addComponent(btnJoin))
-                .addContainerGap())
+                .addContainerGap(73, Short.MAX_VALUE))
         );
 
         pack();
@@ -129,13 +216,25 @@ public class LoginFrame extends javax.swing.JFrame {
         String inputId = txtID.getText().trim();
         String inputPw = new String(txtPW.getPassword()); 
 
-        // 입력값 유효성 검사
+        // 입력값 빈칸 검사
         if (inputId.isEmpty() || inputPw.isEmpty()) {
             JOptionPane.showMessageDialog(this, "아이디와 비밀번호를 입력해주세요.", "경고", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // 비밀번호 조회 쿼리
+        // 실패 횟수가 5회 이상이면 캡차부터 확인
+        if (failCount >= MAX_RETRY) {
+            String captchaInput = txtCaptchaKey.getText().trim();
+            
+            // 입력한 캡차 문자가 정답과 다를 경우
+            if (!captchaInput.equals(currentCaptchaCode)) {
+                JOptionPane.showMessageDialog(this, "보안 문자가 일치하지 않습니다.", "인증 실패", JOptionPane.WARNING_MESSAGE);
+                setCaptcha(); // 보안을 위해 이미지 새로고침
+                return; // DB 조회 단계로 넘어가지 않고 종료
+            }
+        }
+
+        // 비밀번호 조회 쿼리 준비
         String strSQL = "SELECT pw FROM member WHERE id = '" + inputId + "'";
 
         try {
@@ -150,17 +249,22 @@ public class LoginFrame extends javax.swing.JFrame {
                     // 로그인 성공
                     JOptionPane.showMessageDialog(this, inputId + "님, 환영합니다!", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
                     
+                    // 실패 횟수 초기화 및 캡차 숨김
+                    failCount = 0; 
+                    pnCaptcha.setVisible(false);
+                    
+                    // 메인 화면으로 이동
                     MainFrame mainFrame = new MainFrame(inputId); 
-                    mainFrame.setVisible(true); // 메인 화면 실행
-                    this.dispose(); // 로그인 창 종료
+                    mainFrame.setVisible(true); 
+                    this.dispose(); // 현재 로그인 창 닫기
 
                 } else {
                     // 비밀번호 불일치
-                    JOptionPane.showMessageDialog(this, "비밀번호가 일치하지 않습니다.", "로그인 실패", JOptionPane.WARNING_MESSAGE);
+                    processLoginFailure();
                 }
             } else {
                 // ID 미존재
-                 JOptionPane.showMessageDialog(this, "존재하지 않는 아이디입니다.", "로그인 실패", JOptionPane.WARNING_MESSAGE);
+                processLoginFailure();
             }
 
             DBM.DB_rs.close(); 
@@ -189,6 +293,10 @@ public class LoginFrame extends javax.swing.JFrame {
         new FindPasswordFrame().setVisible(true); // 비번 찾기 창 실행
     }//GEN-LAST:event_btnFindActionPerformed
 
+    private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
+        setCaptcha();
+    }//GEN-LAST:event_btnRefreshActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -204,9 +312,14 @@ public class LoginFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnFind;
     private javax.swing.JButton btnJoin;
     private javax.swing.JButton btnLogin;
+    private javax.swing.JButton btnRefresh;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel lblCaptchaImg;
     private javax.swing.JLabel lblTitle;
+    private javax.swing.JPanel pnCaptcha;
+    private javax.swing.JTextField txtCaptchaKey;
     private javax.swing.JTextField txtID;
     private javax.swing.JPasswordField txtPW;
     // End of variables declaration//GEN-END:variables
