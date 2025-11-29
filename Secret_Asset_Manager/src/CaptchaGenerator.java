@@ -43,7 +43,7 @@ public class CaptchaGenerator {
         g2d.fillRect(0, 0, WIDTH, HEIGHT);
         
         // 텍스트 그리기 (랜덤 색상/위치)
-        Font font = new Font("Arial", Font.BOLD | Font.ITALIC, 28);
+        Font font = new Font("Arial", Font.BOLD | Font.ITALIC, 24);
         g2d.setFont(font);
 
         for (int i = 0; i < text.length(); i++) {
